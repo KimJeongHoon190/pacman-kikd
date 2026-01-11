@@ -1,0 +1,59 @@
+name: pacman-ci-action   # 워크플로 이름 
+env: #  워크플로 환경 변수. 기본 환경 변수와 환경에 추가한 시크릿이 포함된다. 
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+  APP_NAME: pacman
+  IMAGE_TAGS: 1.0.0 ${{ github.sha }}
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the
+  # "main" branch
+  push:  # 원하는 트리거 유형. 이 예제는 main 브랜치에 변경이 발생하면 작업을 시작한다. 
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially
+# or in parallel
+jobs:
+  # This workflow contains a single job called "build-and-push"
+  build-and-push: # 작업 이름 
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part
+    # of the job
+    steps: # 단계 목록. 각 단계는 파이프라인에서 실행할 액션을 정의한다. 
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job
+      # can access it
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: maven
+          
+      - name: Build with Maven
+        run: mvn --batch-mode package
+        
+      - name: Buildah Action  # 빌다 빌드. 이 작업은 빌다를 사용하여 컨테이너 이미지를 빌드한다 
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}
+          tags: ${{ env.IMAGE_TAGS }}
+          containerfiles: |
+            ./Dockerfile
+            
+      - name: Push to Registry # 이미지 저장소로 푸시. 깃허브 저장소 소유자의 기본 제공 자격증명을 사용하여 Github 이미지 저장소로 이미지를 푸쉬한다 
+        id: push-to-registry
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
