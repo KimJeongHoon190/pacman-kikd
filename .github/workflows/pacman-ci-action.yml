@@ -47,7 +47,7 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}
+          image: ${{ env.APP_NAME }}      # <--- 여기를 이렇게 심플하게 바꿈!
           tags: ${{ env.IMAGE_TAGS }}
           containerfiles: |
             ./Dockerfile
