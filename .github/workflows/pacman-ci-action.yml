@@ -1,6 +1,6 @@
 name: pacman-ci-action   # 워크플로 이름 
 env: #  워크플로 환경 변수. 기본 환경 변수와 환경에 추가한 시크릿이 포함된다. 
-  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_REGISTRY: ghcr.io/kimjeonghoon190  
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
   APP_NAME: pacman
