@@ -37,7 +37,7 @@ jobs:
           cache: maven
           
       - name: Build with Maven
-        run: mvn --batch-mode package
+        run: mvn --batch-mode package -Dquarkus.package.type=uber-jar
       # --- [여기 아래 2줄을 추가해주세요] ---
       - name: Check target directory
         run: ls -al target/
